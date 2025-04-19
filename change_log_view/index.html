@@ -1,0 +1,130 @@
+<html>
+<head>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      font-size: 13px;
+    }
+
+    .change-log-entry {
+      margin-bottom: 1em;
+    }
+
+    .timestamp,
+    .time-ago {
+      opacity: 0.5;
+    }
+
+    .field-name {
+      font-weight: bold;
+    }
+
+    .old-value {
+      background: #AA8888
+    }
+
+    .new-value {
+      background: #88AA88
+    }
+  </style>
+</head>
+<body>
+
+  <template id="ChangeLogEntryTemplate">
+    <div class="change-log-entry">
+      <div class="time-ago"></div>
+      <div class="timestamp"></div>
+      <div class="field-name"></div>
+      <div class="old-value"></div>
+      <div class="new-value"></div>
+    </div>
+  </template>
+
+  <div id="ChangeLog" />
+
+  <script>
+    window.addEventListener('load', () => {
+      const container = document.getElementById('ChangeLog');
+      const template = document.getElementById('ChangeLogEntryTemplate');
+
+      const grist = window.grist;
+
+      grist.ready({
+        requiredAccess: 'read table',
+        columns: ['change_log']
+      });
+
+      function durationAgo(timestamp) {
+        const timeAgo = new Date().getTime() - new Date(timestamp).getTime();
+        const secondsAgo = Math.floor(timeAgo / 1000);
+        const minutesAgo = Math.floor(secondsAgo / 60);
+        const hoursAgo = Math.floor(minutesAgo / 60);
+        const daysAgo = Math.floor(hoursAgo / 24);
+        const weeksAgo = Math.floor(daysAgo / 7);
+        const monthsAgo = Math.floor(daysAgo / 30);
+        const yearsAgo = Math.floor(daysAgo / 365);
+
+        if (yearsAgo > 0) {
+          return `${yearsAgo} year${yearsAgo > 1 ? 's' : ''} ago`;
+        } else if (monthsAgo > 0) {
+          return `${monthsAgo} month${monthsAgo > 1 ? 's' : ''} ago`;
+        } else if (weeksAgo > 0) {
+          return `${weeksAgo} week${weeksAgo > 1 ? 's' : ''} ago`;
+        } else if (daysAgo > 0) {
+          return `${daysAgo} day${daysAgo > 1 ? 's' : ''} ago`;
+        } else if (hoursAgo > 0) {
+          return `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`;
+        } else if (minutesAgo > 0) {
+          return `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`;
+        } else {
+          return `${secondsAgo} second${secondsAgo > 1 ? 's' : ''} ago`;
+        }
+      }
+
+      grist.onRecord(record => {
+        container.innerHTML = ''; // Clear previous entries
+        const mapped = grist.mapColumnNames(record);
+        const changeLog = JSON.parse(mapped.change_log || '[]');
+
+        changeLog.forEach((logEntry, index) => {
+          const previousSnapshot = index < changeLog.length - 1 ? changeLog[index + 1].snapshot : {};
+          const currentSnapshot = logEntry.snapshot;
+          const changeTime = logEntry.timestamp;
+
+          const timeText = durationAgo(changeTime); // Use the refactored method
+
+          logEntry.changed.forEach((field) => {
+            const oldValue = previousSnapshot[field] || '';
+            const newValue = currentSnapshot[field] || '';
+
+            const entry = template.content.cloneNode(true);
+            const timeAgoElement = entry.querySelector('.time-ago');
+            const timestampElement = entry.querySelector('.timestamp');
+
+            timeAgoElement.textContent = timeText;
+            timestampElement.textContent = changeTime;
+
+            // Initially hide the timestamp and show time-ago
+            timestampElement.style.display = 'none';
+            timeAgoElement.style.cursor = 'pointer';
+
+            // click to show timestamp
+            timeAgoElement.addEventListener('click', () => {
+              timeAgoElement.style.display = 'none';
+              timestampElement.style.display = 'block';
+            });
+
+            entry.querySelector('.field-name').textContent = field;
+            entry.querySelector('.old-value').textContent = oldValue;
+            entry.querySelector('.new-value').textContent = newValue;
+
+            container.appendChild(entry);
+          });
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
