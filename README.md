@@ -11,7 +11,9 @@ a custom widget.
 1. add a trigger function to "change_log"
 1. copy the contents of "trigger_function.py" in the trigger function
 1. edit `exclude` to exclude any columns you do not want to track
-  1. we recommend excluding "change_log" and any other calculated columns
+   
+    * we recommend excluding "change_log" and any other calculated columns
+
 1. check "Apply to new records"
 1. check "Apply on record changes"
 1. set "Apply on changes to:" to "Any field"
