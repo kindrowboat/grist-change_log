@@ -25,7 +25,7 @@ a custom widget.
 1. Select "Custom" Widget
 1. Select the table with "change_log"
 1. Set the "Select By" to the table with "change_log"
-1. Enter "https://tilde.town/~kindrobot/s/grist-change_log/view_changes_widget.html" into the "Widget URL"
+1. Enter "https://kindrowboat.github.io/grist-change_log/view_changes_widget.html" into the "Widget URL"
 1. Grant read access
 1. Select the "change_log" column for "CHANGE_LOG" mapping
 
